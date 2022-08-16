@@ -4,17 +4,25 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.stereotype.Component;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class CounterOfferDataModel {
 
-    private Double currentAMR;
-    private Long principalAmt;
-    private Integer currentTerm;
-    private Float rateOfInterest;
+   // public static Long AMR;
+    public static Long currentCMR ;
+    public static Double TAPPercentIncrease;
+    public static Double MaxTapIncrease;
+    public static Long MaxTermPossible;
+    public static Double Tap;
+    public static long principalAmount;
+    public static long lowestLoanAmount;
+    public static Double currentAMR;
+    public static Integer currentTerm;
+    public static Float rateOfInterest;
+    public static Long RoundedMidpointValue;
+
     @JsonIgnore
     private Float rateOfIntPerMonth;
     private Integer calculatedTerm;
@@ -22,5 +30,9 @@ public class CounterOfferDataModel {
 
     public Float getRateOfIntPerMonth() {
         return getRateOfInterest()/ (12* 100);
+    }
+
+    private Float getRateOfInterest() {
+        return null;
     }
 }

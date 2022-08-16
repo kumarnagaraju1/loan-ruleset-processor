@@ -73,7 +73,7 @@ public class RuleSetProcessorService {
 
 
     private boolean checkMaxLoanAmountReduction(CounterOfferDataModel cod) {
-        boolean reductionStatus = MAX_LOAN_AMOUNT_REDUCTION > (cod.getPrincipalAmt() - cod.getCalPrincipalAmt())? true: false;
+        boolean reductionStatus = MAX_LOAN_AMOUNT_REDUCTION > (cod.getPrincipalAmount() - cod.getCalPrincipalAmt())? true: false;
         LOGGER.info("Max Loan Amount Reduction Status: {}",reductionStatus);
         return reductionStatus;
     }
@@ -88,7 +88,7 @@ public class RuleSetProcessorService {
     }
 
     public int getProvidingTerm(CounterOfferDataModel cod) {
-        double term =  ( Math.log10(cod.getCurrentAMR()/(cod.getCurrentAMR() - (cod.getPrincipalAmt() *cod.getRateOfIntPerMonth()) ))/ Math.log10(1+cod.getRateOfIntPerMonth()));
+        double term =  ( Math.log10(cod.getCurrentAMR()/(cod.getCurrentAMR() - (cod.getPrincipalAmount() *cod.getRateOfIntPerMonth()) ))/ Math.log10(1+cod.getRateOfIntPerMonth()));
         if( term % NEAREST_ROUND_OFF_TERM >  0 )
             term = term - (term % NEAREST_ROUND_OFF_TERM) + NEAREST_ROUND_OFF_TERM;
         cod.setCalculatedTerm((int)Math.ceil(term));
@@ -105,7 +105,7 @@ public class RuleSetProcessorService {
 
         if(checkTermLessThanMaxTerm(cod.getCalculatedTerm()) &&
                 checkTermLessThanMaxAllowableTerm(cod)
-                && checkTIPValid(cod.getCalculatedTerm(), cod.getCurrentAMR(), cod.getPrincipalAmt() ))
+                && checkTIPValid(cod.getCalculatedTerm(), cod.getCurrentAMR(), cod.getPrincipalAmount() ))
             return true;
 
         return false;
@@ -139,7 +139,44 @@ public class RuleSetProcessorService {
         boolean status = ((termObtain * amr) - principalAmount) < MAX_TIP ? true: false;
         LOGGER.info("InterestPaid : {}, TIP Status: {}",interstPaid ,status);
         return status;
+    }
+
+    //step5  CO TAP is getting from step4(cross layer)
+    public Double TapIncrease(){
+        //TAP % Increase = (CO TAP - Original TAP) / Original TAP
+        Double TAPPercentIncrease=(7726.2-CounterOfferDataModel.Tap)/CounterOfferDataModel.Tap;
+
+        //If TAP% Increase < Max TAP increase %, then a successful CO is generated and stop the process. Go to Step 12
+
+        if(TAPPercentIncrease<CounterOfferDataModel.MaxTapIncrease){
+            System.out.println("Successful CO is generated");
+        } else if (TAPPercentIncrease>CounterOfferDataModel.MaxTapIncrease) {
+            System.out.println("adjusting Loan Amount by setting the term at MAX Term possible");
+        }
+        return TAPPercentIncrease;
+    }
+
+
+    //step6 ,a=MaxDecrease,b=MinLoanAmountPossible
+    public int lowestLoanAmount(CounterOfferDataModel cod){
+        Long LowestLoanAmount;
+        Long MaxPercentDecrease= 35L;
+        Long MinLoanAmountPossible= 1000L;//for regular loan
+
+        Long MaxDecrease=cod.principalAmount-(cod.principalAmount*(MaxPercentDecrease/100));
+
+        if(MaxDecrease>MinLoanAmountPossible){
+            LowestLoanAmount=MaxDecrease;
+            System.out.println("LowestLoanAmount");
+        }
+        else{
+            LowestLoanAmount= MinLoanAmountPossible;
+            System.out.println("MinLoanAmountPossible");
+        }
+        return Math.round(LowestLoanAmount);
+        /* now perform quotation */
 
     }
+
 
 }
